@@ -22,6 +22,7 @@ import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public class PsdInputStream extends InputStream {
 
@@ -96,11 +97,12 @@ public class PsdInputStream extends InputStream {
 		return skip;
 	}
 
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public String readString(int len) throws IOException {
 		// read string of specified length
 		byte[] bytes = new byte[len];
 		read(bytes);
-		return new String(bytes, "ISO-8859-1");
+		return new String(bytes, StandardCharsets.ISO_8859_1);
 	}
 
 	public String readPsdString() throws IOException {
@@ -111,11 +113,13 @@ public class PsdInputStream extends InputStream {
 		return readString(size);
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	public int readBytes(byte[] bytes, int n) throws IOException {
 		// read multiple bytes from input
-		if (bytes == null)
+		if (bytes == null) {
 			return 0;
-		int r = 0;
+		}
+		int r;
 		r = read(bytes, 0, n);
 		if (r < n) {
 			throw new IOException("format error. readed=" + r + " needed=" + n);
@@ -133,9 +137,7 @@ public class PsdInputStream extends InputStream {
 
     public int readUnsignedByte() throws IOException {
         int res = in.readUnsignedByte();
-		if (res != -1) {
-			pos++;
-		}
+		pos++;
 		return res;
     }
 
@@ -145,7 +147,7 @@ public class PsdInputStream extends InputStream {
 		if ((ch1 | ch2) < 0) {
 			throw new EOFException();
 		}
-		return (short) ((ch1 << 8) + (ch2 << 0));
+		return (short) ((ch1 << 8) + (ch2));
 	}
 
 	public int readInt() throws IOException {
@@ -156,7 +158,7 @@ public class PsdInputStream extends InputStream {
 		if ((ch1 | ch2 | ch3 | ch4) < 0) {
 			throw new EOFException();
 		}
-		return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
+		return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4));
 	}
 
 	public boolean readBoolean() throws IOException {
@@ -186,6 +188,7 @@ public class PsdInputStream extends InputStream {
 		return Double.longBitsToDouble(readLong());
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	public int skipBytes(int n) throws IOException {
 		int total = 0;
 		int cur;

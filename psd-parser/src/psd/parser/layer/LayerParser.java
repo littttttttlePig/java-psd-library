@@ -1,6 +1,7 @@
 package psd.parser.layer;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import psd.parser.BlendMode;
@@ -10,14 +11,14 @@ public class LayerParser {
 
     private List<Channel> channels;
     private LayerHandler handler;
-    private Map<String, LayerAdditionalInformationParser> additionalInformationParsers;
+    private final Map<String, LayerAdditionalInformationParser> additionalInformationParsers;
     private LayerAdditionalInformationParser defaultAdditionalInformationParser;
     private int width = -1;
     private int height = -1;
 
     public LayerParser() {
         handler = null;
-        additionalInformationParsers = new HashMap<String, LayerAdditionalInformationParser>();
+        additionalInformationParsers = new HashMap<>();
         defaultAdditionalInformationParser = null;
     }
 
@@ -25,8 +26,8 @@ public class LayerParser {
         additionalInformationParsers.put(tag, parser);
     }
 
-    public void setDefaultAdditionalInformationParser(LayerAdditionalInformationParser parser) {
-        defaultAdditionalInformationParser = parser;
+    public void setDefaultAdditionalInformationParser(LayerAdditionalInformationParser defaultAdditionalInformationParser) {
+        this.defaultAdditionalInformationParser = defaultAdditionalInformationParser;
     }
 
     public void setHandler(LayerHandler handler) {
@@ -38,14 +39,14 @@ public class LayerParser {
         parseChannelsInfo(stream);
 
         String tag = stream.readString(4);
-        if (!tag.equals("8BIM")) {
+        if (!"8BIM".equals(tag)) {
             throw new IOException("format error");
         }
         parseBlendMode(stream);
         parseOpacity(stream);
         parseClipping(stream);
         parseFlags(stream);
-        int filler = stream.readByte(); // filler. must be zero
+        int filler = stream.readByte();
         assert filler == 0;
         parseExtraData(stream);
     }
@@ -76,7 +77,7 @@ public class LayerParser {
 
     private void parseChannelsInfo(PsdInputStream stream) throws IOException {
         int channelsCount = stream.readShort();
-        channels = new ArrayList<Channel>();
+        channels = new ArrayList<>();
         for (int j = 0; j < channelsCount; j++) {
             channels.add(new Channel(stream));
         }
@@ -224,7 +225,7 @@ public class LayerParser {
                 break;
             }
         }
-        String name = new String(str, 0, strSize, "ISO-8859-1");
+        String name = new String(str, 0, strSize, StandardCharsets.ISO_8859_1);
         if (handler != null) {
             handler.nameLoaded(name);
         }
@@ -233,7 +234,7 @@ public class LayerParser {
     private void parseAdditionalSections(PsdInputStream stream, int endPos) throws IOException {
         while (stream.getPos() < endPos) {
             String tag = stream.readString(4);
-            if (!tag.equals("8BIM")) {
+            if (!"8BIM".equals(tag)) {
                 throw new IOException("layer information signature error");
             }
             tag = stream.readString(4);

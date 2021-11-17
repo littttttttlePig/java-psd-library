@@ -18,21 +18,26 @@
 
 package psd;
 
+import lombok.Data;
 import psd.parser.BlendMode;
 import psd.parser.layer.*;
 import psd.parser.layer.additional.*;
 import psd.parser.layer.additional.effects.PSDEffect;
+import psd.parser.object.PsdDescriptor;
 import psd.util.BufferedImageBuilder;
 
 import java.awt.image.*;
 import java.util.*;
 
+@Data
 public class Layer implements LayersContainer {
     private int top = 0;
     private int left = 0;
     private int bottom = 0;
     private int right = 0;
-
+    private Layer parent;
+    private PsdDescriptor typeTool;
+    int typeToolVersion;
     private int alpha = 255;
 
     private boolean visible = true;
@@ -46,10 +51,11 @@ public class Layer implements LayersContainer {
     private BlendMode layerBlendMode;
     private BlendingRanges layerBlendingRanges;
     private Mask mask;
+    private Matrix layerMatrix;
 
-    private ArrayList<Layer> layers = new ArrayList<Layer>();
+    private ArrayList<Layer> layers = new ArrayList<>();
 
-    private ArrayList<PSDEffect> layerEffects = new ArrayList<PSDEffect>();
+    private ArrayList<PSDEffect> layerEffects = new ArrayList<>();
 
     public Layer(LayerParser parser) {
         parser.setHandler(new LayerHandler() {
@@ -104,24 +110,22 @@ public class Layer implements LayersContainer {
 
         });
 
-        parser.putAdditionalInformationParser(LayerSectionDividerParser.TAG, new LayerSectionDividerParser(new LayerSectionDividerHandler() {
-            @Override
-            public void sectionDividerParsed(LayerType type) {
-                Layer.this.type = type;
-            }
-        }));
+        parser.putAdditionalInformationParser(LayerSectionDividerParser.TAG, new LayerSectionDividerParser(type -> Layer.this.type = type));
 
-        parser.putAdditionalInformationParser(LayerEffectsParser.TAG, new LayerEffectsParser(new LayerEffectsHandler() {
-            @Override
-            public void handleEffects(List<PSDEffect> effects) {
-                layerEffects.addAll(effects);
-            }
-        }));
+        parser.putAdditionalInformationParser(LayerEffectsParser.TAG, new LayerEffectsParser(effects -> layerEffects.addAll(effects)));
 
-        parser.putAdditionalInformationParser(LayerUnicodeNameParser.TAG, new LayerUnicodeNameParser(new LayerUnicodeNameHandler() {
+        parser.putAdditionalInformationParser(LayerUnicodeNameParser.TAG, new LayerUnicodeNameParser(unicodeName -> name = unicodeName));
+
+        parser.putAdditionalInformationParser(LayerTypeToolParser.TAG,new LayerTypeToolParser(new LayerTypeToolHandler() {
             @Override
-            public void layerUnicodeNameParsed(String unicodeName) {
-                name = unicodeName;
+            public void typeToolTransformParsed(Matrix transform) {
+            layerMatrix = transform;
+            }
+
+            @Override
+            public void typeToolDescriptorParsed(int version, PsdDescriptor descriptor) {
+                typeToolVersion = version;
+                typeTool = descriptor;
             }
         }));
     }
@@ -149,9 +153,6 @@ public class Layer implements LayersContainer {
         return image;
     }
 
-    public List<PSDEffect> getEffectsList() {
-        return layerEffects;
-    }
 
     public int getX() {
         return left;
@@ -169,52 +170,7 @@ public class Layer implements LayersContainer {
         return bottom - top;
     }
 
-    public LayerType getType() {
-        return type;
-    }
 
-    public boolean isVisible() {
-        return visible;
-    }
 
-    @Override
-    public String toString() {
-        return name;
-    }
 
-    public int getAlpha() {
-        return alpha;
-    }
-
-    public boolean isClippingLoaded() {
-        return clippingLoaded;
-    }
-
-    public void setClippingLoaded(boolean clippingLoaded) {
-        this.clippingLoaded = clippingLoaded;
-    }
-
-    public BlendMode getLayerBlendMode() {
-        return layerBlendMode;
-    }
-
-    public void setLayerBlendMode(BlendMode layerBlendMode) {
-        this.layerBlendMode = layerBlendMode;
-    }
-
-    public BlendingRanges getLayerBlendingRanges() {
-        return layerBlendingRanges;
-    }
-
-    public void setLayerBlendingRanges(BlendingRanges layerBlendingRanges) {
-        this.layerBlendingRanges = layerBlendingRanges;
-    }
-
-    public Mask getMask() {
-        return mask;
-    }
-
-    public void setMask(Mask mask) {
-        this.mask = mask;
-    }
 }

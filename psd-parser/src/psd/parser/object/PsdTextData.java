@@ -23,8 +23,7 @@ import java.util.*;
 import psd.parser.PsdInputStream;
 
 public class PsdTextData extends PsdObject {
-
-	private Map<String, Object> properties;
+	private final Map<String, Object> properties;
 	private int cachedByte = -1;
 	private boolean useCachedByte;
 	
@@ -53,7 +52,7 @@ public class PsdTextData extends PsdObject {
 		} else if (c == '<') {
 			skipString(stream, "<");
 		}
-		HashMap<String, Object> map = new HashMap<String, Object>();
+		HashMap<String, Object> map = new HashMap<>();
 		while (true) {
 			skipWhitespaces(stream);
 			c = (char) readByte(stream);
@@ -75,15 +74,15 @@ public class PsdTextData extends PsdObject {
 	}
 
 	private String readName(PsdInputStream stream) throws IOException {
-		String name = "";
+		StringBuilder name = new StringBuilder();
 		while (true) {
 			char c = (char) readByte(stream);
 			if (c == ' ' || c == 10) {
 				break;
 			}
-			name += c;
+			name.append(c);
 		}
-		return name;
+		return name.toString();
 	}
 
 	private Object readValue(PsdInputStream stream) throws IOException {
@@ -92,57 +91,51 @@ public class PsdTextData extends PsdObject {
 			return null;
 		} else if (c == '(') {
 			// unicode string
-			String string = "";
+			StringBuilder string = new StringBuilder();
 			int stringSignature = readShort(stream) & 0xFFFF;
 			assert stringSignature == 0xFEFF;
 			while (true) {
 				byte b1 = readByte(stream);
 				if (b1 == ')') {
-					return string;
+					return string.toString();
 				}
 				byte b2 = readByte(stream);
 				if (b2 == '\\') {
 					b2 = readByte(stream);
 				}
 				if (b2 == 13) {
-					string += '\n';
+					string.append('\n');
 				} else {
-					string += (char) ((b1 << 8) | b2);
+					string.append((char) ((b1 << 8) | b2));
 				}
 			}
 		} else if (c == '[') {
-			ArrayList<Object> list = new ArrayList<Object>();
-			// array
-			c = (char) readByte(stream);
+			ArrayList<Object> list = new ArrayList<>();
 			while (true) {
 				skipWhitespaces(stream);
 				c = (char) lookForwardByte(stream);
+				Object val;
 				if (c == '<') {
-					Object val = readMap(stream);
-					if (val == null) {
-						return list;
-					} else {
-						list.add(val);
-					}
+					val = readMap(stream);
 				} else {
-					Object val = readValue(stream);
-					if (val == null) {
-						return list;
-					} else {
-						list.add(val);
-					}
+					val = readValue(stream);
+				}
+				if (val == null) {
+					return list;
+				} else {
+					list.add(val);
 				}
 			}
 		} else {
-			String val = "";
+			StringBuilder val = new StringBuilder();
 			do {
-				val += c;
+				val.append(c);
 				c = (char) readByte(stream);
 			} while (c != 10 && c != ' ');
-			if (val.equals("true") || val.equals("false")) {
-				return Boolean.valueOf(val);
+			if ("true".equals(val.toString()) || "false".equals(val.toString())) {
+				return Boolean.valueOf(val.toString());
 			} else {
-				return Double.valueOf(val);
+				return Double.valueOf(val.toString());
 			}
 		}
 	}
@@ -174,11 +167,10 @@ public class PsdTextData extends PsdObject {
 		if (useCachedByte) {
 			assert cachedByte != -1;
 			useCachedByte = false;
-			return (byte) cachedByte;
 		} else {
 			cachedByte = stream.read();
-			return (byte) cachedByte;
 		}
+		return (byte) cachedByte;
 	}
 
 	private short readShort(PsdInputStream stream) throws IOException {

@@ -28,7 +28,7 @@ public enum BlendMode {
 
     private String name;
 
-    private BlendMode(String name) {
+    BlendMode(String name) {
         this.name = name;
     }
 

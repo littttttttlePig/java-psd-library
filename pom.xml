@@ -9,7 +9,22 @@
         <module>psd-image</module>
         <module>psd-parser</module>
         <module>psd-tool</module>
+        <module>psd-server-starter</module>
     </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.22</version>
+            <scope>compile</scope>
+        </dependency>
+        <!--划重点啦-->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.3.0-alpha10</version>
+        </dependency>
+    </dependencies>
     <distributionManagement>
         <snapshotRepository>
             <id>encontra-snapshots</id>

@@ -24,25 +24,20 @@ import java.util.*;
 import psd.parser.*;
 import psd.parser.header.*;
 import psd.parser.layer.*;
-
+@SuppressWarnings("unused")
 public class Psd implements LayersContainer {
 	private Header header;
-	private List<Layer> layers = new ArrayList<Layer>();
+	private final List<Layer> layers;
     private Layer baseLayer;
-    private String name;
+    private final String name;
 
     public Psd(InputStream stream) throws IOException {
         name = "unknown name";
 
 		PsdFileParser parser = new PsdFileParser();
-		parser.getHeaderSectionParser().setHandler(new HeaderSectionHandler() {
-            @Override
-            public void headerLoaded(Header header) {
-                Psd.this.header = header;
-            }
-        });
+		parser.getHeaderSectionParser().setHandler(header -> Psd.this.header = header);
 
-        final List<Layer> fullLayersList = new ArrayList<Layer>();
+        final List<Layer> fullLayersList = new ArrayList<>();
 		parser.getLayersSectionParser().setHandler(new LayersSectionHandler() {
             @Override
             public void createLayer(LayerParser parser) {
@@ -67,14 +62,9 @@ public class Psd implements LayersContainer {
         name = psdFile.getName();
 
 		PsdFileParser parser = new PsdFileParser();
-		parser.getHeaderSectionParser().setHandler(new HeaderSectionHandler() {
-            @Override
-            public void headerLoaded(Header header) {
-                Psd.this.header = header;
-            }
-        });
+		parser.getHeaderSectionParser().setHandler(header -> Psd.this.header = header);
 
-        final List<Layer> fullLayersList = new ArrayList<Layer>();
+        final List<Layer> fullLayersList = new ArrayList<>();
 		parser.getLayersSectionParser().setHandler(new LayersSectionHandler() {
             @Override
             public void createLayer(LayerParser parser) {
@@ -98,12 +88,12 @@ public class Psd implements LayersContainer {
 	}
 	
     private List<Layer> makeLayersHierarchy(List<Layer> layers) {
-        LinkedList<LinkedList<Layer>> layersStack = new LinkedList<LinkedList<Layer>>();
-        ArrayList<Layer> rootLayers = new ArrayList<Layer>();
+        LinkedList<LinkedList<Layer>> layersStack = new LinkedList<>();
+        ArrayList<Layer> rootLayers = new ArrayList<>();
         for (Layer layer : layers) {
             switch (layer.getType()) {
             case HIDDEN: {
-                layersStack.addFirst(new LinkedList<Layer>());
+                layersStack.addFirst(new LinkedList<>());
                 break;
             }
             case FOLDER: {
@@ -112,8 +102,13 @@ public class Psd implements LayersContainer {
                 for (Layer l : folderLayers) {
                     layer.addLayer(l);
                 }
+                if (layersStack.isEmpty()) {
+                    rootLayers.add(layer);
+                } else {
+                    layersStack.getFirst().add(layer);
+                }
+                break;
             }
-                // break isn't needed
             case NORMAL: {
                 if (layersStack.isEmpty()) {
                     rootLayers.add(layer);
@@ -172,4 +167,17 @@ public class Psd implements LayersContainer {
     public Layer getBaseLayer() {
         return this.baseLayer;
     }
+
+    public Header getHeader() {
+        return header;
+    }
+
+    public void setHeader(Header header) {
+        this.header = header;
+    }
+
+    public void setBaseLayer(Layer baseLayer) {
+        this.baseLayer = baseLayer;
+    }
+
 }

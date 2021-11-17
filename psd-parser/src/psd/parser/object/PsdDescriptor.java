@@ -34,7 +34,7 @@ public class PsdDescriptor extends PsdObject {
 	private final String classId;
 	
 	/** a map containing all values of the descriptor */
-	private final HashMap<String, PsdObject> objects = new HashMap<String, PsdObject>();
+	private final HashMap<String, PsdObject> objects = new HashMap<>();
 
 	/**
 	 * Instantiates a new psd descriptor.
