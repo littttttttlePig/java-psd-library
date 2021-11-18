@@ -38,6 +38,7 @@ public class Layer implements LayersContainer {
     private Layer parent;
     private PsdDescriptor typeTool;
     int typeToolVersion;
+    /**透明度*/
     private int alpha = 255;
 
     private boolean visible = true;
@@ -119,7 +120,7 @@ public class Layer implements LayersContainer {
         parser.putAdditionalInformationParser(LayerTypeToolParser.TAG,new LayerTypeToolParser(new LayerTypeToolHandler() {
             @Override
             public void typeToolTransformParsed(Matrix transform) {
-            layerMatrix = transform;
+                layerMatrix = transform;
             }
 
             @Override

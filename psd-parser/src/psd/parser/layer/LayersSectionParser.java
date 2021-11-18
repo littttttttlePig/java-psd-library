@@ -36,7 +36,7 @@ public class LayersSectionParser {
 					layersCount = -layersCount;
 				}
 
-				List<LayerParser> parsers = new ArrayList<LayerParser>(layersCount);
+				List<LayerParser> parsers = new ArrayList<>(layersCount);
 				for (int i = 0; i < layersCount; i++) {
 					LayerParser layerParser = new LayerParser();
 					parsers.add(layerParser);
@@ -65,7 +65,7 @@ public class LayersSectionParser {
 		}
 		baseLayerParser.fireBoundsChanged(0, 0, header.getWidth(), header.getHeight());
 
-		ArrayList<Channel> channels = new ArrayList<Channel>(header.getChannelsCount());
+		ArrayList<Channel> channels = new ArrayList<>(header.getChannelsCount());
 		for (int j = 0; j < header.getChannelsCount(); j++) {
 			channels.add(new Channel(j == 3 ? -1 : j));
 		}

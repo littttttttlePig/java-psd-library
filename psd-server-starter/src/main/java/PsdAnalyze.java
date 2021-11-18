@@ -1,9 +1,9 @@
+import cn.hutool.core.convert.Convert;
 import lombok.extern.slf4j.Slf4j;
 import psd.Layer;
 import psd.Psd;
 import psd.parser.layer.LayerType;
 import psd.parser.object.PsdDescriptor;
-import psd.parser.object.PsdObject;
 import psd.parser.object.PsdTextData;
 
 import javax.imageio.ImageIO;
@@ -21,8 +21,12 @@ import java.util.Map;
 @Slf4j
 public class PsdAnalyze {
     public static void main(String[] args) {
-        String dir = "C:\\Users\\20201217-010\\Desktop\\PSD文件\\PSD文件\\";
-        String fileName = "0301-钟-Loafers (5).psd";
+        if (args.length < 2) {
+            System.out.println("java -jar psd-analizer.jar source.psd dest.dir");
+            return;
+        }
+        String dir = args[0];
+        String fileName = args[1];
         long startTime = System.currentTimeMillis();
 
         try {
@@ -43,6 +47,7 @@ public class PsdAnalyze {
         outputDir.mkdirs();
 
         int total = psdFile.getLayersCount();
+        Layer baseLayer = psdFile.getBaseLayer();
         for (int i = 0; i < total; i++) {
             Layer layer = psdFile.getLayer(i);
             log.info("processing: " + layer.getName() + " - " + (i * 100 / total) + "%");
@@ -99,23 +104,21 @@ public class PsdAnalyze {
         writer.write("-*- text layer -*-");
         writer.newLine();
 
-        writer.write("TEXT: " + typeTool.get("Txt "));
+        writer.write("TEXT: " + typeTool.get("Txt"));
         writer.newLine();
         writer.write("METRICS: ");
         writer.newLine();
 
-        PsdTextData textData = (PsdTextData) typeTool.get("EngineData");
-        Map<String, Object> properties = textData.getProperties();
-        writeMap(writer, properties, 0);
+        writeMap(writer, Convert.convert(PsdTextData.class,typeTool.get("EngineData")).getProperties(), 0);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void writeMap(BufferedWriter writer, Map<String, Object> map, int level) throws IOException {
         writeTabs(writer, level); writer.write("{"); writer.newLine();
-
         for (String key : map.keySet()) {
             writeTabs(writer, level + 1); writer.write(key + ": ");
             Object value = map.get(key);
+            log.info(value.toString());
             if (value instanceof Map) {
                 writer.newLine();
                 writeMap(writer, (Map) value, level + 1);
