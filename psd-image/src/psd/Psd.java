@@ -46,7 +46,10 @@ public class Psd implements LayersContainer {
 
             @Override
             public void createBaseLayer(LayerParser parser) {
-                baseLayer = new Layer(parser);
+                Psd.this.baseLayer = new Layer(parser);
+                if (fullLayersList.isEmpty()) {
+                    fullLayersList.add(Psd.this.baseLayer);
+                }
             }
         });
 
