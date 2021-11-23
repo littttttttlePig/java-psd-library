@@ -1,4 +1,5 @@
 import cn.hutool.core.convert.Convert;
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import psd.Layer;
 import psd.Psd;
@@ -11,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -67,18 +69,29 @@ public class PsdAnalyze {
                 log.warn("!!!!NULL layer: " + layer.getName());
             }
             BufferedWriter writer = new BufferedWriter(new FileWriter(new File(baseDir, path + ".txt")));
+            Map<String,Object> json  = new HashMap<>();
+            json.put("layerWidth",psd.getWidth());
+            json.put("layerHeight",layer.getHeight());
+            json.put("width",layer.getWidth());
+            json.put("height",psd.getWidth());
+            json.put("name",layer.getName());
+            json.put("startX",layer.getLeft());
+            json.put("startY",layer.getTop());
+            json.put("endX",(layer.getLeft() + layer.getWidth()));
+            json.put("endY",(layer.getTop() + layer.getHeight()));
+
             writer.write("psd");
             writer.newLine();
-            writer.write("width: " + psd.getWidth());
+            writer.write("parent_width: " + psd.getWidth());
             writer.newLine();
-            writer.write("height: " + psd.getHeight());
+            writer.write("parent_height: " + psd.getHeight());
             writer.newLine();
             writer.newLine();
             writer.write("layer:" + layer.getName());
             writer.newLine();
-            writer.write("x: " + layer.getLeft());
+            writer.write("start_x: " + layer.getLeft());
             writer.newLine();
-            writer.write("y: " + layer.getTop());
+            writer.write("start_y: " + layer.getTop());
             writer.newLine();
             writer.newLine();
             writer.write("end_x: " + (layer.getLeft() + layer.getWidth()));
@@ -93,6 +106,11 @@ public class PsdAnalyze {
 
             if (layer.getTypeTool() != null) {
                 writeTypeTool(writer, layer.getTypeTool());
+                json.put("engineData",layer.getTypeTool().get("EngineData"));
+                BufferedWriter writer1 = new BufferedWriter(new FileWriter(new File(baseDir, path + ".json")));
+                String jsonString = JSONObject.toJSONString(json);
+                writer1.write(jsonString);
+                writer1.close();
             }
             writer.close();
         }
@@ -108,8 +126,8 @@ public class PsdAnalyze {
         writer.newLine();
         writer.write("METRICS: ");
         writer.newLine();
-
         writeMap(writer, Convert.convert(PsdTextData.class,typeTool.get("EngineData")).getProperties(), 0);
+
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
