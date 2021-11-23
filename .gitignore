@@ -38,6 +38,3 @@ build/
 **/.DS_Store
 *.zip
 *.log
-psd-tool/psd-tool.iml
-psd-parser/psd-parser.iml
-*.iml
