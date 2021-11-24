@@ -18,9 +18,15 @@
 
 package psd;
 
+import java.awt.*;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 
+import com.freeway.image.combiner.ImageCombiner;
+import com.freeway.image.combiner.element.RectangleElement;
+import com.freeway.image.combiner.element.TextElement;
+import com.freeway.image.combiner.enums.OutputFormat;
 import psd.parser.*;
 import psd.parser.header.*;
 import psd.parser.layer.*;
@@ -180,4 +186,28 @@ public class Psd implements LayersContainer {
         this.baseLayer = baseLayer;
     }
 
+    public ImageCombiner buildImageCombiner(){
+        Random random = new Random();
+        int colorBound = 255;
+        int i = 0;
+        ImageCombiner imageCombiner = null;
+        do {
+            Layer layer = layers.get(i);
+            if (i == 0) {
+                imageCombiner = new ImageCombiner(layer.getWidth(), layer.getHeight(), Color.GRAY, OutputFormat.PNG);
+            } else {
+                Color color = new Color(random.nextInt(colorBound), random.nextInt(colorBound), random.nextInt(colorBound));
+                RectangleElement rectangleElement = new RectangleElement(layer.getX(), layer.getY(), layer.getWidth(), layer.getHeight());
+                rectangleElement.setColor(color);
+                imageCombiner.addElement(rectangleElement);
+            }
+            i++;
+        } while (i < this.getLayersCount());
+        try {
+            imageCombiner.combine();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return imageCombiner;
+    }
 }
